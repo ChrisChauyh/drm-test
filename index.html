@@ -1,0 +1,50 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DRM Test</title>
+<style>
+  body { background:#000; color:#fff; font-family:sans-serif; font-size:18px; margin:8px; }
+  .ok { color:#4cd964; } .bad { color:#ff3b30; } .info { color:#aaa; font-size:13px; word-break:break-all; }
+  p { margin:6px 0; }
+</style>
+</head>
+<body>
+<p><b>KaiOS DRM Test</b></p>
+<div id="out"></div>
+<script>
+  var out = document.getElementById('out');
+  function line(text, cls) {
+    var p = document.createElement('p');
+    p.className = cls || '';
+    p.textContent = text;
+    out.appendChild(p);
+  }
+
+  line('HTTPS: ' + (location.protocol === 'https:' ? 'yes' : 'NO (DRM needs https)'),
+       location.protocol === 'https:' ? 'ok' : 'bad');
+
+  if (!navigator.requestMediaKeySystemAccess) {
+    line('EME: missing', 'bad');
+  } else {
+    line('EME: present', 'ok');
+    var config = [{
+      initDataTypes: ['cenc'],
+      audioCapabilities: [{ contentType: 'audio/mp4; codecs="mp4a.40.2"' }]
+    }];
+    var systems = [
+      ['Widevine', 'com.widevine.alpha'],
+      ['ClearKey', 'org.w3.clearkey']
+    ];
+    systems.forEach(function (s) {
+      navigator.requestMediaKeySystemAccess(s[1], config)
+        .then(function () { line(s[0] + ': YES', 'ok'); })
+        .catch(function (e) { line(s[0] + ': no (' + e.name + ')', 'bad'); });
+    });
+  }
+
+  line(navigator.userAgent, 'info');
+</script>
+</body>
+</html>
